@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirAware – Map</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-card, #1e2d3d);
+            color: var(--text-primary, #e8edf2);
+            border-radius: 10px;
+            border: 1px solid #2c3e50;
+        }
+        .leaflet-popup-tip { background: #1e2d3d; }
+        .leaflet-popup-content { font-family: 'Segoe UI', sans-serif; }
+        .popup-city { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .popup-aqi { font-size: 2rem; font-weight: 700; }
+        .popup-status { font-size: 0.85rem; margin-top: 0.25rem; }
+        .popup-detail { font-size: 0.8rem; color: #8899a6; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo"><span>🌬️</span> AirAware</div>
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/trends">Trends</a>
+        <a href="/map" class="active">Map</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:1.5rem;">
+        <div id="map"></div>
+    </div>
+
+    <div class="map-legend">
+        <div class="legend-item">
+            <span class="legend-dot" style="background:#2ecc71;"></span> Good (0–50)
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background:#f1c40f;"></span> Moderate (51–100)
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background:#e67e22;"></span> Unhealthy (101–200)
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background:#e74c3c;"></span> Very Unhealthy (201–300)
+        </div>
+        <div class="legend-item">
+            <span class="legend-dot" style="background:#8e44ad;"></span> Hazardous (300+)
+        </div>
+    </div>
+
+    <!-- City list table -->
+    <div class="card" style="margin-top:1.5rem;">
+        <h2>City AQI Summary</h2>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; margin-top:0.75rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid #2c3e50; text-align:left;">
+                        <th style="padding:0.5rem; color:#8899a6;">City</th>
+                        <th style="padding:0.5rem; color:#8899a6;">AQI</th>
+                        <th style="padding:0.5rem; color:#8899a6;">Status</th>
+                        <th style="padding:0.5rem; color:#8899a6;">PM2.5</th>
+                        <th style="padding:0.5rem; color:#8899a6;">PM10</th>
+                        <th style="padding:0.5rem; color:#8899a6;">Source</th>
+                    </tr>
+                </thead>
+                <tbody id="cityTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize map centered on India
+    const map = L.map('map').setView([22.5, 78.5], 5);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        maxZoom: 18,
+    }).addTo(map);
+
+    async function loadCities() {
+        try {
+            const res = await fetch('/aqi/cities');
+            const data = await res.json();
+
+            const tableBody = document.getElementById('cityTable');
+            tableBody.innerHTML = '';
+
+            data.cities.forEach(city => {
+                // Create circle marker
+                const circle = L.circleMarker([city.lat, city.lon], {
+                    radius: Math.max(10, Math.min(25, city.aqi / 10)),
+                    fillColor: city.color,
+                    color: city.color,
+                    weight: 2,
+                    opacity: 0.9,
+                    fillOpacity: 0.6,
+                }).addTo(map);
+
+                circle.bindPopup(`
+                    <div class="popup-city">${city.name}</div>
+                    <div class="popup-aqi" style="color:${city.color}">${city.aqi}</div>
+                    <div class="popup-status" style="color:${city.color}">${city.status}</div>
+                    <div class="popup-detail">PM2.5: ${city.pm25} µg/m³ | PM10: ${city.pm10} µg/m³</div>
+                    <div class="popup-detail" style="margin-top:4px;">📍 ${city.station || city.name} &middot; via ${(city.source || '').toUpperCase()}</div>
+                `);
+
+                // Also add a label
+                L.marker([city.lat, city.lon], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<div style="
+                            background:${city.color};
+                            color:#fff;
+                            padding:2px 8px;
+                            border-radius:12px;
+                            font-size:12px;
+                            font-weight:700;
+                            white-space:nowrap;
+                            text-align:center;
+                            transform:translate(-50%,-150%);
+                            box-shadow:0 2px 6px rgba(0,0,0,0.4);
+                        ">${city.name}: ${city.aqi}</div>`,
+                        iconSize: [0, 0],
+                    })
+                }).addTo(map);
+
+                // Table row
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #2c3e50';
+                tr.innerHTML = `
+                    <td style="padding:0.5rem; font-weight:600;">${city.name}</td>
+                    <td style="padding:0.5rem;">
+                        <span style="color:${city.color}; font-weight:700;">${city.aqi}</span>
+                    </td>
+                    <td style="padding:0.5rem;">
+                        <span style="background:${city.color}; color:#fff; padding:2px 8px; border-radius:12px; font-size:0.8rem;">
+                            ${city.status}
+                        </span>
+                    </td>
+                    <td style="padding:0.5rem;">${city.pm25}</td>
+                    <td style="padding:0.5rem;">${city.pm10}</td>
+                    <td style="padding:0.5rem; font-size:0.8rem; color:#8899a6;">${(city.source || '').toUpperCase()}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+        } catch (err) {
+            console.error('Failed to load city data:', err);
+        }
+    }
+
+    loadCities();
+</script>
+</body>
+</html>

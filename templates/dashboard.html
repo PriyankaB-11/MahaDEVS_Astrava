@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirAware – Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+    <div class="logo"><span>🌬️</span> AirAware</div>
+    <nav>
+        <a href="/" class="active">Dashboard</a>
+        <a href="/trends">Trends</a>
+        <a href="/map">Map</a>
+    </nav>
+    <div class="city-select">
+        <label for="citySelect">City:</label>
+        <select id="citySelect">
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Pune">Pune</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Jaipur">Jaipur</option>
+            <option value="Lucknow">Lucknow</option>
+        </select>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Loading state -->
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading air quality data...</p>
+    </div>
+
+    <!-- Main content (hidden until loaded) -->
+    <div id="mainContent" style="display:none;">
+
+        <!-- Top row: Current AQI + Predictions -->
+        <div class="grid-top">
+            <!-- Current AQI Card -->
+            <div class="card aqi-display" id="currentAqiCard">
+                <h2>Current AQI</h2>
+                <div class="city-name" id="cityLabel">Delhi</div>
+                <div class="value" id="currentAqi">--</div>
+                <div class="status-badge" id="currentStatus">Loading</div>
+                <div style="margin-top:0.75rem; font-size:0.8rem; color:var(--text-secondary);">
+                    <span id="sourceLabel"></span><br>
+                    <span id="stationLabel"></span>
+                </div>
+            </div>
+
+            <!-- 24h Prediction -->
+            <div class="card prediction-card">
+                <h2>24-Hour Prediction</h2>
+                <div class="time-label">Next 24 hours</div>
+                <div class="value" id="pred24h">--</div>
+                <div class="status-badge" id="status24h">--</div>
+            </div>
+
+            <!-- 48h Prediction -->
+            <div class="card prediction-card">
+                <h2>48-Hour Prediction</h2>
+                <div class="time-label">Next 48 hours</div>
+                <div class="value" id="pred48h">--</div>
+                <div class="status-badge" id="status48h">--</div>
+            </div>
+        </div>
+
+        <!-- Weather strip -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <div class="weather-strip">
+                <div class="weather-item">🌡️ <span id="wTemp">--</span>°C</div>
+                <div class="weather-item">💧 <span id="wHumidity">--</span>%</div>
+                <div class="weather-item">💨 <span id="wWind">--</span> km/h</div>
+            </div>
+        </div>
+
+        <!-- Middle row: Pollutants + Advisory -->
+        <div class="grid-2">
+            <!-- Pollutant levels -->
+            <div class="card">
+                <h2>Pollutant Levels</h2>
+                <div class="pollutant-grid">
+                    <div class="pollutant-item">
+                        <div class="label">PM2.5</div>
+                        <div class="val" id="pPM25">--</div>
+                        <div class="unit">µg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="label">PM10</div>
+                        <div class="val" id="pPM10">--</div>
+                        <div class="unit">µg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="label">NO₂</div>
+                        <div class="val" id="pNO2">--</div>
+                        <div class="unit">µg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="label">SO₂</div>
+                        <div class="val" id="pSO2">--</div>
+                        <div class="unit">µg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="label">CO</div>
+                        <div class="val" id="pCO">--</div>
+                        <div class="unit">mg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="label">O₃</div>
+                        <div class="val" id="pO3">--</div>
+                        <div class="unit">µg/m³</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health advisory -->
+            <div class="card">
+                <h2>Health Advisory</h2>
+                <ul class="advisory-list" id="advisoryList"></ul>
+
+                <!-- Vulnerable Population Section -->
+                <div class="vulnerable-section">
+                    <h2 style="margin-top:1rem;">Vulnerable Population Alert</h2>
+                    <div class="vulnerable-toggles">
+                        <label>
+                            <input type="checkbox" class="vuln-check" value="asthma">
+                            <span>🫁 Asthma</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="vuln-check" value="children">
+                            <span>👶 Children</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" class="vuln-check" value="elderly">
+                            <span>👴 Elderly</span>
+                        </label>
+                    </div>
+                    <div id="vulnerableAlerts"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom row: Forecast chart -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <h2>AQI Forecast (Next 48 Hours)</h2>
+            <div class="chart-container">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pollution overview chart -->
+        <div class="card">
+            <h2>Pollution Overview (Last 30 Days)</h2>
+            <div class="chart-container">
+                <canvas id="overviewChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/charts.js"></script>
+<script>
+    const citySelect = document.getElementById('citySelect');
+    let forecastChart = null;
+    let overviewChart = null;
+
+    function getSelectedVulnerable() {
+        return Array.from(document.querySelectorAll('.vuln-check:checked')).map(c => c.value);
+    }
+
+    function vulnQueryString() {
+        return getSelectedVulnerable().map(v => 'vulnerable=' + v).join('&');
+    }
+
+    function setStatusBadge(el, status, color) {
+        el.textContent = status;
+        el.style.background = color;
+        el.style.color = '#fff';
+    }
+
+    async function loadDashboard() {
+        const city = citySelect.value;
+        const vuln = vulnQueryString();
+
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+
+        try {
+            const [currentRes, predictRes, trendsRes] = await Promise.all([
+                fetch(`/aqi/current?city=${city}&${vuln}`),
+                fetch(`/aqi/predict?city=${city}&${vuln}`),
+                fetch(`/aqi/trends?city=${city}&days=30`)
+            ]);
+
+            const current = await currentRes.json();
+            const predict = await predictRes.json();
+            const trends = await trendsRes.json();
+
+            // Current AQI
+            document.getElementById('cityLabel').textContent = city;
+            document.getElementById('currentAqi').textContent = current.aqi;
+            document.getElementById('currentAqiCard').style.borderTop = `4px solid ${current.advisory.color}`;
+            setStatusBadge(document.getElementById('currentStatus'), current.advisory.status, current.advisory.color);
+
+            // Data source & station
+            const srcEmoji = current.source === 'aqicn' ? '🟢 Live' : current.source === 'openaq' ? '🟢 Live' : '🟡 Cached';
+            document.getElementById('sourceLabel').textContent = `${srcEmoji} via ${(current.source || '').toUpperCase()}`;
+            document.getElementById('stationLabel').textContent = `📍 ${current.station || city}`;
+
+            // Weather
+            document.getElementById('wTemp').textContent = current.weather.temperature;
+            document.getElementById('wHumidity').textContent = current.weather.humidity;
+            document.getElementById('wWind').textContent = current.weather.wind_speed;
+
+            // Pollutants
+            document.getElementById('pPM25').textContent = current.pollutants['PM2.5'];
+            document.getElementById('pPM10').textContent = current.pollutants['PM10'];
+            document.getElementById('pNO2').textContent = current.pollutants['NO2'];
+            document.getElementById('pSO2').textContent = current.pollutants['SO2'];
+            document.getElementById('pCO').textContent = current.pollutants['CO'];
+            document.getElementById('pO3').textContent = current.pollutants['O3'];
+
+            // Predictions
+            document.getElementById('pred24h').textContent = predict.prediction_24h.aqi;
+            setStatusBadge(document.getElementById('status24h'),
+                predict.prediction_24h.advisory.status, predict.prediction_24h.advisory.color);
+
+            document.getElementById('pred48h').textContent = predict.prediction_48h.aqi;
+            setStatusBadge(document.getElementById('status48h'),
+                predict.prediction_48h.advisory.status, predict.prediction_48h.advisory.color);
+
+            // Advisory
+            const advList = document.getElementById('advisoryList');
+            advList.innerHTML = '';
+            current.advisory.general_advice.forEach(a => {
+                const li = document.createElement('li');
+                li.textContent = a;
+                advList.appendChild(li);
+            });
+
+            // Vulnerable alerts
+            renderVulnerableAlerts(current.advisory.vulnerable_alerts);
+
+            // Forecast chart
+            if (forecastChart) forecastChart.destroy();
+            forecastChart = createForecastChart('forecastChart', predict.hourly_forecast);
+
+            // Overview chart
+            if (overviewChart) overviewChart.destroy();
+            overviewChart = createOverviewChart('overviewChart', trends);
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+        } catch (err) {
+            console.error('Failed to load dashboard:', err);
+            document.getElementById('loadingState').innerHTML =
+                '<p style="color:#e74c3c;">Failed to load data. Ensure the server is running and the model is trained.</p>';
+        }
+    }
+
+    function renderVulnerableAlerts(alerts) {
+        const container = document.getElementById('vulnerableAlerts');
+        container.innerHTML = '';
+        if (!alerts || Object.keys(alerts).length === 0) return;
+
+        for (const [group, messages] of Object.entries(alerts)) {
+            const div = document.createElement('div');
+            div.className = 'vulnerable-alert';
+            div.innerHTML = `<h4>⚠️ ${group} Alert</h4>`;
+            const ul = document.createElement('ul');
+            ul.className = 'advisory-list vulnerable';
+            messages.forEach(m => {
+                const li = document.createElement('li');
+                li.textContent = m;
+                ul.appendChild(li);
+            });
+            div.appendChild(ul);
+            container.appendChild(div);
+        }
+    }
+
+    citySelect.addEventListener('change', loadDashboard);
+    document.querySelectorAll('.vuln-check').forEach(cb => {
+        cb.addEventListener('change', loadDashboard);
+    });
+
+    loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+/* =========================================================
+   AirAware – Global Styles
+   ========================================================= */
+
+:root {
+    --bg-primary: #0f1923;
+    --bg-secondary: #1a2732;
+    --bg-card: #1e2d3d;
+    --text-primary: #e8edf2;
+    --text-secondary: #8899a6;
+    --accent: #1da1f2;
+    --accent-hover: #1a91da;
+    --good: #2ecc71;
+    --moderate: #f1c40f;
+    --unhealthy: #e67e22;
+    --very-unhealthy: #e74c3c;
+    --hazardous: #8e44ad;
+    --border: #2c3e50;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+/* ---- Navbar ---- */
+.navbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+.navbar .logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.navbar .logo span { font-size: 1.6rem; }
+.navbar nav { display: flex; gap: 0.25rem; }
+.navbar nav a {
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.navbar nav a:hover,
+.navbar nav a.active {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+.navbar .city-select {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.navbar select {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* ---- Container ---- */
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+/* ---- Cards ---- */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+.card h2 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+.card .value {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.card .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+/* ---- Grid layouts ---- */
+.grid-top {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ---- AQI big display ---- */
+.aqi-display {
+    text-align: center;
+    padding: 2rem;
+}
+.aqi-display .value {
+    font-size: 4.5rem;
+}
+.aqi-display .city-name {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* ---- Prediction cards ---- */
+.prediction-card {
+    text-align: center;
+}
+.prediction-card .time-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+.prediction-card .value {
+    font-size: 2.5rem;
+}
+
+/* ---- Pollutant grid ---- */
+.pollutant-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+.pollutant-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+.pollutant-item .label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+.pollutant-item .val {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+.pollutant-item .unit {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* ---- Advisory ---- */
+.advisory-list {
+    list-style: none;
+    padding: 0;
+}
+.advisory-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+}
+.advisory-list li:last-child { border-bottom: none; }
+.advisory-list li::before {
+    content: "⚠";
+    font-size: 1rem;
+}
+.advisory-list.vulnerable li::before {
+    content: "🔴";
+}
+
+/* ---- Vulnerable Groups ---- */
+.vulnerable-section {
+    margin-top: 1.5rem;
+}
+.vulnerable-toggles {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.vulnerable-toggles label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.vulnerable-toggles label:hover {
+    border-color: var(--accent);
+}
+.vulnerable-toggles input:checked + span {
+    color: var(--accent);
+    font-weight: 600;
+}
+.vulnerable-toggles input { display: none; }
+
+.vulnerable-alert {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid var(--very-unhealthy);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+}
+.vulnerable-alert h4 {
+    color: var(--very-unhealthy);
+    margin-bottom: 0.5rem;
+    text-transform: capitalize;
+}
+
+/* ---- Charts ---- */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ---- Map ---- */
+#map {
+    height: 500px;
+    border-radius: var(--radius);
+    z-index: 1;
+}
+.map-legend {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+}
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* ---- Weather strip ---- */
+.weather-strip {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    padding: 0.5rem 0;
+}
+.weather-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* ---- Loading ---- */
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+.source-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+.source-tag.live { background: rgba(46,204,113,0.2); color: #2ecc71; }
+.source-tag.cached { background: rgba(241,196,15,0.2); color: #f1c40f; }
+.spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 0.75rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- Tabs (trends page) ---- */
+.tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+}
+.tab-btn {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.tab-btn:hover, .tab-btn.active {
+    color: var(--text-primary);
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+    .grid-top { grid-template-columns: 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .pollutant-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .navbar { padding: 0 1rem; }
+    .navbar nav { gap: 0; }
+    .container { padding: 1rem; }
+    .pollutant-grid { grid-template-columns: 1fr 1fr; }
+}

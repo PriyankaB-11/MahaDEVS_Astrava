@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirAware – Trends</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo"><span>🌬️</span> AirAware</div>
+    <nav>
+        <a href="/">Dashboard</a>
+        <a href="/trends" class="active">Trends</a>
+        <a href="/map">Map</a>
+    </nav>
+    <div class="city-select">
+        <label for="citySelect">City:</label>
+        <select id="citySelect">
+            <option value="Delhi">Delhi</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Bangalore">Bangalore</option>
+            <option value="Chennai">Chennai</option>
+            <option value="Kolkata">Kolkata</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Pune">Pune</option>
+            <option value="Ahmedabad">Ahmedabad</option>
+            <option value="Jaipur">Jaipur</option>
+            <option value="Lucknow">Lucknow</option>
+        </select>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="tabs" style="margin-top:0.5rem;">
+        <button class="tab-btn active" data-days="7">7 Days</button>
+        <button class="tab-btn" data-days="30">30 Days</button>
+        <button class="tab-btn" data-days="90">90 Days</button>
+        <button class="tab-btn" data-days="365">1 Year</button>
+    </div>
+
+    <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Loading trend data...</p>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+
+        <!-- AQI Over Time -->
+        <div class="card" style="margin-bottom:1.5rem;">
+            <h2>AQI Over Time</h2>
+            <div class="chart-container" style="height:350px;">
+                <canvas id="aqiTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- PM2.5 and PM10 -->
+        <div class="grid-2">
+            <div class="card">
+                <h2>PM2.5 Trend</h2>
+                <div class="chart-container">
+                    <canvas id="pm25Chart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>PM10 Trend</h2>
+                <div class="chart-container">
+                    <canvas id="pm10Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other pollutants -->
+        <div class="grid-3">
+            <div class="card">
+                <h2>NO₂ Trend</h2>
+                <div class="chart-container" style="height:220px;">
+                    <canvas id="no2Chart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>SO₂ Trend</h2>
+                <div class="chart-container" style="height:220px;">
+                    <canvas id="so2Chart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>O₃ Trend</h2>
+                <div class="chart-container" style="height:220px;">
+                    <canvas id="o3Chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature & Humidity -->
+        <div class="card">
+            <h2>Weather Overlay</h2>
+            <div class="chart-container" style="height:300px;">
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const citySelect = document.getElementById('citySelect');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    let currentDays = 7;
+    let charts = {};
+
+    function destroyCharts() {
+        Object.values(charts).forEach(c => { if (c) c.destroy(); });
+        charts = {};
+    }
+
+    function makeLineChart(canvasId, labels, datasets, yLabel = '') {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { intersect: false, mode: 'index' },
+                plugins: { legend: { labels: { color: '#8899a6' } } },
+                scales: {
+                    x: {
+                        ticks: { color: '#8899a6', maxTicksLimit: 12 },
+                        grid: { color: 'rgba(44,62,80,0.5)' }
+                    },
+                    y: {
+                        ticks: { color: '#8899a6' },
+                        grid: { color: 'rgba(44,62,80,0.5)' },
+                        title: { display: !!yLabel, text: yLabel, color: '#8899a6' }
+                    }
+                }
+            }
+        });
+    }
+
+    async function loadTrends() {
+        const city = citySelect.value;
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('mainContent').style.display = 'none';
+
+        try {
+            const res = await fetch(`/aqi/trends?city=${city}&days=${currentDays}`);
+            const data = await res.json();
+            destroyCharts();
+
+            const labels = data.dates;
+
+            // AQI trend
+            charts.aqi = makeLineChart('aqiTrendChart', labels, [{
+                label: 'AQI',
+                data: data.aqi,
+                borderColor: '#1da1f2',
+                backgroundColor: 'rgba(29,161,242,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: currentDays <= 30 ? 3 : 0,
+            }], 'AQI');
+
+            // PM2.5
+            charts.pm25 = makeLineChart('pm25Chart', labels, [{
+                label: 'PM2.5',
+                data: data.pm25,
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231,76,60,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: currentDays <= 30 ? 2 : 0,
+            }], 'µg/m³');
+
+            // PM10
+            charts.pm10 = makeLineChart('pm10Chart', labels, [{
+                label: 'PM10',
+                data: data.pm10,
+                borderColor: '#e67e22',
+                backgroundColor: 'rgba(230,126,34,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: currentDays <= 30 ? 2 : 0,
+            }], 'µg/m³');
+
+            // NO2
+            charts.no2 = makeLineChart('no2Chart', labels, [{
+                label: 'NO₂',
+                data: data.no2,
+                borderColor: '#9b59b6',
+                tension: 0.3,
+                pointRadius: 0,
+            }], 'µg/m³');
+
+            // SO2
+            charts.so2 = makeLineChart('so2Chart', labels, [{
+                label: 'SO₂',
+                data: data.so2,
+                borderColor: '#f39c12',
+                tension: 0.3,
+                pointRadius: 0,
+            }], 'µg/m³');
+
+            // O3
+            charts.o3 = makeLineChart('o3Chart', labels, [{
+                label: 'O₃',
+                data: data.o3,
+                borderColor: '#2ecc71',
+                tension: 0.3,
+                pointRadius: 0,
+            }], 'µg/m³');
+
+            // Weather
+            const weatherCtx = document.getElementById('weatherChart').getContext('2d');
+            charts.weather = new Chart(weatherCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Temperature (°C)',
+                            data: data.temperature,
+                            borderColor: '#e74c3c',
+                            yAxisID: 'y',
+                            tension: 0.3,
+                            pointRadius: 0,
+                        },
+                        {
+                            label: 'Humidity (%)',
+                            data: data.humidity,
+                            borderColor: '#3498db',
+                            yAxisID: 'y1',
+                            tension: 0.3,
+                            pointRadius: 0,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { legend: { labels: { color: '#8899a6' } } },
+                    scales: {
+                        x: { ticks: { color: '#8899a6', maxTicksLimit: 12 }, grid: { color: 'rgba(44,62,80,0.5)' } },
+                        y: {
+                            position: 'left',
+                            ticks: { color: '#e74c3c' },
+                            grid: { color: 'rgba(44,62,80,0.3)' },
+                            title: { display: true, text: '°C', color: '#e74c3c' }
+                        },
+                        y1: {
+                            position: 'right',
+                            ticks: { color: '#3498db' },
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: '%', color: '#3498db' }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+        } catch (err) {
+            console.error('Failed to load trends:', err);
+            document.getElementById('loadingState').innerHTML =
+                '<p style="color:#e74c3c;">Failed to load trend data.</p>';
+        }
+    }
+
+    // Tab buttons
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDays = parseInt(btn.dataset.days);
+            loadTrends();
+        });
+    });
+
+    citySelect.addEventListener('change', loadTrends);
+    loadTrends();
+</script>
+</body>
+</html>
