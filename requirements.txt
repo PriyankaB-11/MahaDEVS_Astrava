@@ -5,3 +5,6 @@ scikit-learn==1.6.1
 requests==2.32.3
 joblib==1.4.2
 gunicorn==23.0.0
+python-dotenv==1.2.1
+supabase==2.13.0
+resend==2.7.0

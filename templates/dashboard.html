@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AirAware – Dashboard</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -17,6 +18,12 @@
         <a href="/trends">Trends</a>
         <a href="/map">Map</a>
     </nav>
+    <div class="nav-right">
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span class="toggle-icon">🌙</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon">☀️</span>
+    </div>
     <div class="city-select">
         <label for="citySelect">City:</label>
         <select id="citySelect">
@@ -31,6 +38,7 @@
             <option value="Jaipur">Jaipur</option>
             <option value="Lucknow">Lucknow</option>
         </select>
+    </div>
     </div>
 </header>
 
@@ -79,9 +87,9 @@
         <!-- Weather strip -->
         <div class="card" style="margin-bottom:1.5rem;">
             <div class="weather-strip">
-                <div class="weather-item">🌡️ <span id="wTemp">--</span>°C</div>
-                <div class="weather-item">💧 <span id="wHumidity">--</span>%</div>
-                <div class="weather-item">💨 <span id="wWind">--</span> km/h</div>
+                <div class="weather-item"><span class="weather-label">🌡️ Temperature</span> <span id="wTemp">--</span>°C</div>
+                <div class="weather-item"><span class="weather-label">💧 Humidity</span> <span id="wHumidity">--</span>%</div>
+                <div class="weather-item"><span class="weather-label">💨 Wind Speed</span> <span id="wWind">--</span> km/h</div>
             </div>
         </div>
 
@@ -166,6 +174,44 @@
                 <canvas id="overviewChart"></canvas>
             </div>
         </div>
+
+        <!-- Email Alert Subscription -->
+        <div class="card" id="alertCard" style="margin-top:1.5rem;">
+            <h2>📧 AQI Email Alerts</h2>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1rem;">
+                Get notified when AQI exceeds your threshold.
+            </p>
+            <div id="alertNotConfigured" style="display:none; color:#e67e22; font-size:0.85rem; margin-bottom:1rem;">
+                ⚠️ Email alerts require Supabase + Resend configuration.
+            </div>
+            <form id="subscribeForm" style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end;">
+                <div style="flex:1; min-width:200px;">
+                    <label style="font-size:0.8rem; color:var(--text-secondary);">Email</label>
+                    <input type="email" id="alertEmail" placeholder="you@example.com" required
+                           style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff;">
+                </div>
+                <div style="min-width:100px;">
+                    <label style="font-size:0.8rem; color:var(--text-secondary);">AQI Threshold</label>
+                    <select id="alertThreshold"
+                            style="width:100%; padding:0.5rem; border-radius:6px; border:1px solid #444; background:#1e1e1e; color:#fff;">
+                        <option value="50">50 – Good</option>
+                        <option value="100">100 – Moderate</option>
+                        <option value="150" selected>150 – Unhealthy</option>
+                        <option value="200">200 – Very Unhealthy</option>
+                        <option value="300">300 – Hazardous</option>
+                    </select>
+                </div>
+                <button type="submit"
+                        style="padding:0.5rem 1.5rem; border-radius:6px; border:none; background:#2ecc71; color:#fff; font-weight:bold; cursor:pointer;">
+                    Subscribe
+                </button>
+                <button type="button" id="unsubBtn"
+                        style="padding:0.5rem 1rem; border-radius:6px; border:1px solid #e74c3c; background:transparent; color:#e74c3c; cursor:pointer;">
+                    Unsubscribe
+                </button>
+            </form>
+            <div id="alertMsg" style="margin-top:0.75rem; font-size:0.85rem;"></div>
+        </div>
     </div>
 </div>
 
@@ -219,9 +265,9 @@
             document.getElementById('stationLabel').textContent = `📍 ${current.station || city}`;
 
             // Weather
-            document.getElementById('wTemp').textContent = current.weather.temperature;
-            document.getElementById('wHumidity').textContent = current.weather.humidity;
-            document.getElementById('wWind').textContent = current.weather.wind_speed;
+            document.getElementById('wTemp').textContent = parseFloat(current.weather.temperature).toFixed(1);
+            document.getElementById('wHumidity').textContent = parseFloat(current.weather.humidity).toFixed(1);
+            document.getElementById('wWind').textContent = parseFloat(current.weather.wind_speed).toFixed(1);
 
             // Pollutants
             document.getElementById('pPM25').textContent = current.pollutants['PM2.5'];
@@ -297,6 +343,64 @@
     });
 
     loadDashboard();
+
+    // --- Alert subscription ---
+    (async () => {
+        try {
+            const res = await fetch('/alerts/status');
+            const data = await res.json();
+            if (!data.configured) {
+                document.getElementById('alertNotConfigured').style.display = 'block';
+            }
+        } catch(e) {}
+    })();
+
+    document.getElementById('subscribeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('alertEmail').value.trim();
+        const threshold = document.getElementById('alertThreshold').value;
+        const city = citySelect.value;
+        const msgEl = document.getElementById('alertMsg');
+
+        try {
+            const res = await fetch('/alerts/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, city, threshold: parseInt(threshold)})
+            });
+            const data = await res.json();
+            if (data.error) {
+                msgEl.innerHTML = `<span style="color:#e74c3c;">❌ ${data.error}</span>`;
+            } else {
+                msgEl.innerHTML = `<span style="color:#2ecc71;">✅ ${data.status === 'reactivated' ? 'Reactivated' : 'Subscribed'}! Alerts for ${city} when AQI > ${threshold}.</span>`;
+            }
+        } catch(err) {
+            msgEl.innerHTML = '<span style="color:#e74c3c;">❌ Failed to subscribe.</span>';
+        }
+    });
+
+    document.getElementById('unsubBtn').addEventListener('click', async () => {
+        const email = document.getElementById('alertEmail').value.trim();
+        const city = citySelect.value;
+        const msgEl = document.getElementById('alertMsg');
+        if (!email) { msgEl.innerHTML = '<span style="color:#e74c3c;">Enter your email first.</span>'; return; }
+
+        try {
+            const res = await fetch('/alerts/unsubscribe', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, city})
+            });
+            const data = await res.json();
+            if (data.error) {
+                msgEl.innerHTML = `<span style="color:#e74c3c;">❌ ${data.error}</span>`;
+            } else {
+                msgEl.innerHTML = '<span style="color:#f1c40f;">🔕 Unsubscribed from alerts.</span>';
+            }
+        } catch(err) {
+            msgEl.innerHTML = '<span style="color:#e74c3c;">❌ Failed to unsubscribe.</span>';
+        }
+    });
 </script>
 </body>
 </html>

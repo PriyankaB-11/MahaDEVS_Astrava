@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirAware – Breathe Smarter</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/theme.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+    <div class="logo"><span>🌬️</span> AirAware</div>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/trends">Trends</a>
+        <a href="/map">Map</a>
+    </nav>
+    <div class="nav-right">
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span class="toggle-icon">🌙</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon">☀️</span>
+    </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <!-- Animated particles background -->
+    <div class="hero-particles" aria-hidden="true">
+        <span class="particle"></span><span class="particle"></span>
+        <span class="particle"></span><span class="particle"></span>
+        <span class="particle"></span><span class="particle"></span>
+        <span class="particle"></span><span class="particle"></span>
+    </div>
+    <div class="hero-content fade-in-up">
+        <div class="hero-logo">🌬️</div>
+        <h1 class="hero-title">AirAware</h1>
+        <p class="hero-tagline">Real-Time Air Quality Prediction &amp; Health Advisory System</p>
+        <p class="hero-sub">Know what you breathe. Protect who you love.</p>
+        <a href="/dashboard" class="hero-cta">
+            <span>Open Dashboard</span>
+            <svg class="cta-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+    </div>
+</section>
+
+<!-- Stats Bar -->
+<section class="stats-bar">
+    <div class="stat-item">
+        <span class="stat-number" data-count="10">0</span>
+        <span class="stat-label">Cities Monitored</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" data-count="6">0</span>
+        <span class="stat-label">Pollutants Tracked</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" data-count="48">0</span>
+        <span class="stat-label">Hour Forecasts</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-number" data-count="24">0</span>
+        <span class="stat-label">/7 Monitoring</span>
+    </div>
+</stats>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title fade-in-up">What We Offer</h2>
+    <div class="features-grid">
+
+        <div class="feature-card fade-in-up" style="--delay: 0s">
+            <div class="feature-icon">📡</div>
+            <h3>Live AQI Monitoring</h3>
+            <p>Real-time air quality data from AQICN station sensors and Open-Meteo, covering 10 major Indian cities.</p>
+            <div class="card-glow"></div>
+        </div>
+
+        <div class="feature-card fade-in-up" style="--delay: 0.1s">
+            <div class="feature-icon">🤖</div>
+            <h3>ML-Powered Predictions</h3>
+            <p>24-hour and 48-hour AQI forecasts using a Random Forest model trained on real historical data.</p>
+            <div class="card-glow"></div>
+        </div>
+
+        <div class="feature-card fade-in-up" style="--delay: 0.2s">
+            <div class="feature-icon">🏥</div>
+            <h3>Health Advisories</h3>
+            <p>Personalized health guidance based on current AQI, with special alerts for children, elderly, and asthma patients.</p>
+            <div class="card-glow"></div>
+        </div>
+
+        <div class="feature-card fade-in-up" style="--delay: 0.3s">
+            <div class="feature-icon">📊</div>
+            <h3>Pollution Trends</h3>
+            <p>Interactive charts showing historical pollutant trends, temperature, and humidity over the last 30 days.</p>
+            <div class="card-glow"></div>
+        </div>
+
+        <div class="feature-card fade-in-up" style="--delay: 0.4s">
+            <div class="feature-icon">🗺️</div>
+            <h3>City AQI Map</h3>
+            <p>Visual map with live AQI markers for all monitored cities – see air quality at a glance across India.</p>
+            <div class="card-glow"></div>
+        </div>
+
+        <div class="feature-card fade-in-up" style="--delay: 0.5s">
+            <div class="feature-icon">📧</div>
+            <h3>Email Alerts</h3>
+            <p>Subscribe to get notified when AQI in your city exceeds your chosen threshold – powered by Supabase &amp; Resend.</p>
+            <div class="card-glow"></div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <p>Built with ❤️ by <strong>MahaDEVS</strong> &nbsp;|&nbsp; Data from AQICN &amp; Open-Meteo APIs</p>
+</footer>
+
+<script>
+// Scroll-triggered fade-in animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            observer.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
+
+// Animated stat counters
+function animateCounters() {
+    document.querySelectorAll('.stat-number[data-count]').forEach(el => {
+        const target = +el.dataset.count;
+        const duration = 1500;
+        const start = performance.now();
+        function tick(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(target * ease);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+}
+const statsObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+        if (e.isIntersecting) { animateCounters(); statsObs.unobserve(e.target); }
+    });
+}, { threshold: 0.5 });
+const statsBar = document.querySelector('.stats-bar');
+if (statsBar) statsObs.observe(statsBar);
+
+// Feature card mouse-follow glow
+document.querySelectorAll('.feature-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+        card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+    });
+});
+</script>
+
+</body>
+</html>

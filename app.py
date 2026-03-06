@@ -7,6 +7,9 @@ Fetches LIVE data from AQICN and Open-Meteo APIs.
 import os
 from datetime import datetime, timedelta
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import numpy as np
 import pandas as pd
 import joblib
@@ -15,6 +18,10 @@ from flask import Flask, render_template, jsonify, request
 from live_data import (
     get_live_data, get_all_cities_live, get_supported_cities,
     CITY_CONFIG,
+)
+from notifications import (
+    add_subscriber, remove_subscriber, list_subscribers,
+    start_alert_checker, is_configured as notify_configured,
 )
 
 app = Flask(__name__)
@@ -222,6 +229,11 @@ def predict_aqi(features_dict, hours_ahead=0):
 # Page routes
 # ---------------------------------------------------------------------------
 @app.route("/")
+def landing():
+    return render_template("landing.html")
+
+
+@app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
 
@@ -374,7 +386,63 @@ def aqi_cities():
 
 
 # ---------------------------------------------------------------------------
+# Notification endpoints
+# ---------------------------------------------------------------------------
+@app.route("/alerts/subscribe", methods=["POST"])
+def alerts_subscribe():
+    """Subscribe an email to AQI alerts for a city."""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+    city = data.get("city", "Delhi").strip()
+    threshold = int(data.get("threshold", 150))
+
+    if not email or "@" not in email:
+        return jsonify({"error": "Valid email required"}), 400
+    if city not in CITY_CONFIG:
+        return jsonify({"error": f"Unsupported city: {city}"}), 400
+    if not (50 <= threshold <= 500):
+        return jsonify({"error": "Threshold must be between 50 and 500"}), 400
+
+    try:
+        result = add_subscriber(email, city, threshold)
+    except Exception as e:
+        print(f"[Alerts] Subscribe error: {e}")
+        return jsonify({"error": "Service temporarily unavailable"}), 503
+    if "error" in result:
+        return jsonify(result), 503
+    return jsonify(result)
+
+
+@app.route("/alerts/unsubscribe", methods=["POST"])
+def alerts_unsubscribe():
+    """Unsubscribe an email from AQI alerts."""
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip()
+    city = data.get("city")
+
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+
+    try:
+        result = remove_subscriber(email, city)
+    except Exception as e:
+        print(f"[Alerts] Unsubscribe error: {e}")
+        return jsonify({"error": "Service temporarily unavailable"}), 503
+    if "error" in result:
+        return jsonify(result), 503
+    return jsonify(result)
+
+
+@app.route("/alerts/status")
+def alerts_status():
+    """Check if notifications are configured."""
+    return jsonify({"configured": notify_configured()})
+
+
+# ---------------------------------------------------------------------------
 # Run
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
+    # Start background alert checker if configured
+    start_alert_checker(get_city_data, get_aqi_category)
     app.run(debug=True, host="0.0.0.0", port=5000)

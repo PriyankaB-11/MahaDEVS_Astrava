@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirAware – Breathe Smarter</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/theme.js"></script>
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+    <div class="logo"><span>🌬️</span> AirAware</div>
+    <nav>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/trends">Trends</a>
+        <a href="/map">Map</a>
+    </nav>
+    <div class="nav-right">
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span class="toggle-icon">🌙</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon">☀️</span>
+    </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-logo">🌬️</div>
+        <h1 class="hero-title">AirAware</h1>
+        <p class="hero-tagline">Real-Time Air Quality Prediction & Health Advisory System</p>
+        <p class="hero-sub">Know what you breathe. Protect who you love.</p>
+        <a href="/dashboard" class="hero-cta">Open Dashboard →</a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">What We Offer</h2>
+    <div class="features-grid">
+
+        <div class="feature-card">
+            <div class="feature-icon">📡</div>
+            <h3>Live AQI Monitoring</h3>
+            <p>Real-time air quality data from AQICN station sensors and Open-Meteo, covering 10 major Indian cities.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🤖</div>
+            <h3>ML-Powered Predictions</h3>
+            <p>24-hour and 48-hour AQI forecasts using a Random Forest model trained on real historical data.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🏥</div>
+            <h3>Health Advisories</h3>
+            <p>Personalized health guidance based on current AQI, with special alerts for children, elderly, and asthma patients.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Pollution Trends</h3>
+            <p>Interactive charts showing historical pollutant trends, temperature, and humidity over the last 30 days.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🗺️</div>
+            <h3>City AQI Map</h3>
+            <p>Visual map with live AQI markers for all monitored cities – see air quality at a glance across India.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📧</div>
+            <h3>Email Alerts</h3>
+            <p>Subscribe to get notified when AQI in your city exceeds your chosen threshold – powered by Supabase & Resend.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <p>Built with ❤️ by <strong>MahaDEVS</strong> &nbsp;|&nbsp; Data from AQICN & Open-Meteo APIs</p>
+</footer>
+
+</body>
+</html>

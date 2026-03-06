@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AirAware – Trends</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -16,6 +17,12 @@
         <a href="/trends" class="active">Trends</a>
         <a href="/map">Map</a>
     </nav>
+    <div class="nav-right">
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span class="toggle-icon">🌙</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-icon">☀️</span>
+    </div>
     <div class="city-select">
         <label for="citySelect">City:</label>
         <select id="citySelect">
@@ -30,6 +37,7 @@
             <option value="Jaipur">Jaipur</option>
             <option value="Lucknow">Lucknow</option>
         </select>
+    </div>
     </div>
 </header>
 
